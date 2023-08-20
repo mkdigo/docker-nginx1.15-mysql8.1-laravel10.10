@@ -1,0 +1,66 @@
+version: '3'
+
+services:
+
+  nginx:
+    build: ./docker/nginx/
+    container_name: nginx
+    restart: always
+    ports:
+      - "80:80"
+    volumes:
+      - './docker/nginx/nginx.conf:/etc/nginx/nginx.conf'
+      - './docker/nginx/conf.d:/etc/nginx/conf.d'
+    depends_on:
+      - dev.com
+      - api.dev.com
+
+  dev.com:
+    build: ./docker/nginx/
+    container_name: dev.com
+    restart: always
+    volumes:
+      - ./dev.com/:/usr/share/nginx/html
+  
+  api.dev.com:
+    build: ./docker/nginx/
+    container_name: api.dev.com
+    restart: always
+    volumes:
+      - ./api.dev.com/:/var/www/
+      - ./docker/api.dev.com/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - api
+
+  api:
+    build: ./docker/php/
+    container_name: api
+    volumes:
+      - ./api.dev.com/:/var/www/
+    depends_on:
+      - mysql
+
+  mysql:
+    image: mysql:8.1.0
+    container_name: mysql
+    restart: always
+    ports:
+      - "3306"
+    volumes:
+      - ./docker/mysql/:/var/lib/mysql
+    environment:
+      MYSQL_DATABASE: app
+      MYSQL_ROOT_PASSWORD: root
+
+  phpmyadmin:
+    image: phpmyadmin
+    restart: always
+    ports:
+      - 81:80
+    environment:
+      - PMA_ARBITRARY=1
+      - PMA_HOST=mysql
+      - PMA_USER=root
+      - PMA_PASSWORD=root
+    depends_on:
+      - mysql

@@ -12,6 +12,11 @@ RUN apt-get install -y npm
 RUN apt-get install -y git
 RUN apt-get install -y zip
 
+# To resolve write permission error
+RUN addgroup --gid 1000 laravel
+RUN adduser --ingroup laravel --shell /bin/sh laravel
+USER laravel
+
 EXPOSE 9000
 
 ENTRYPOINT [ "php-fpm" ]
